@@ -24,7 +24,8 @@ const String HU_OFF = "0-122-2-";
 //0-13-5-22-16-0-102-2-  HU ON?
 //0-13-5-22-240-0-126-2- Interior lights/guages on
 // HU off       while running?
-const String HU_ON = "0-13-1-22-240-0-";
+//const String HU_ON = "0-13-1-22-240-0-";
+const String HU_ON = "22-240-0";
 const String AUX = "0-76-2-";
 const String VOL_CHANGE = "10-10-10-10-10-3-";
 const String CD_PAUSED = "0-3-5-22-80-0-72-2-";
@@ -79,52 +80,91 @@ void loop()
         for(int i = 0; i<len; i++) {
           s = s + buf[i] + "-";
         }
-        if( isVolumeChange(s) ) {            
+        //Serial.println( s );
+        if( isVolumeChange(s) ) {
             changeVolume( parseVolume(s) );
         }
         else if( s == CD_TRACK_CHANGE ) {
           //Serial.println( "Track change" );
         }
-        else if( s.indexOf( HU_OFF ) > -1 ) {
+        else if( isSourceOff( s ) ) {
           // The HU_OFF signal gets sent constantly
           // while it is off, so only flip the switch
           // if needed
           if( system_on ) {
             turnSystemOff();
           } 
+          //Serial.print( "OFF: " );
           //Serial.println( s );
         }
-        else if( s.startsWith( "0-13") && (s.indexOf("-22-16-") > -1 || s.indexOf("-22-240-") > -1) ) {
-           if( s.endsWith( AUX ) ) {
-             turnLEDsOn();
+        else if( isSourcePlaying( s ) ) {
+          //Serial.print( "ON: " );
+          //Serial.println( s );
+          turnSystemOn(); 
+        }
+        else if( s.endsWith( AUX ) ) {
+          if( !leds_on ) {
+            turnLEDsOn();
            }
            else {
              if( leds_on ) {
                turnLEDsOff(); // makes sure they are off
              } 
            }
-           turnSystemOn();
-           //Serial.println( s ); 
         }
-        
         //0-13-5-22-240-0-110-2-   BLUETOOTH
         //0-13-5-22-240-0-72-2-    DISC
         //0-13-5-22-240-0-66-2-    RADIO
         //0-13-5-22-240-0-82-2-    SATTELITE
         //0-13-5-22-240-0-102-2-   IPOD
         //0-13-3-22-16-0-76-2-     AUX
+
+        //31-111-xx-xxx-16-0-0-x     // command sequence
+        //31-111-31-255-16-0-0-1-    // off
+        //31-111-31-255-16-0-0-118-  // running ipod
+        //31-111-50-0-16-0-0-118-    // acc ipod
+        //31-111-31-255-16-0-0-11-   // running radio
+        //31-111-31-255-64-0-0-11-   // acc radio
+        //31-111-31-255-16-0-0-93-   // disc
+        //31-111-16-0-16-0-0-0-   // opened door
+        //31-111-16-0-16-0-1-251- // about to be off 
+        
         //Serial.println( s );
     }
     else {
       no_msg_counter++;
-      if( no_msg_counter > 10000 ) {
-        if( system_on ) {
+      if( no_msg_counter > 50000 ) {
+        //if( system_on ) {
           Serial.println( "No activity, turning off system" );
           turnSystemOff();
-        }
+        //}
         no_msg_counter = 0;
       }
     }
+}
+
+boolean isSourceOff( String msg ) {
+  if( msg.startsWith( "31-111" ) && msg.endsWith( "16-0-0-1-" ) ) {
+    return true;
+  }  
+  else if( msg.startsWith( "31-111" ) && msg.endsWith( "16-0-1-251" ) ) {
+     return true; 
+  }
+  else if( msg.startsWith( "31-111" ) && msg.endsWith( "16-0-0-0-" ) ) {
+     return true; 
+  }
+  else {
+    return false;
+  }
+}
+
+boolean isSourcePlaying( String msg ) {
+  if( msg.startsWith( "31-111" ) && msg.indexOf( "16-0-0" ) > 7 ) {
+    return true;
+  } 
+  else {
+    return false;
+  }
 }
 
 boolean isVolumeChange( String msg ) {
@@ -187,7 +227,7 @@ void turnSystemOn() {
 }
 
 void turnSystemOff() { 
-  if( system_on ) {
+  //if( system_on ) {
     Serial.println( "Turning system off" );
     // Set volume to zero
     changeVolume( 0 );
@@ -198,7 +238,7 @@ void turnSystemOff() {
     digitalWrite( rane_relay, LOW );
     system_on = false;
     turnLEDsOff();
-   }
+   //}
 }
 
 void turnLEDsOff() {
