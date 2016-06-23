@@ -88,13 +88,13 @@ s.startsWith( "31\t111\t" ) == false &&
 //s.startsWith( "0\t13\t5" ) == false &&
 s.startsWith( "12\t9\t152" ) == false &&
 s.startsWith( "0\t108\t28" ) == false &&
-s.startsWith( "10\t10\t10" ) == false &&
+//s.startsWith( "10\t10\t10" ) == false &&
 s.endsWith( "239\t240\t0\t") == false &&
 s.startsWith( "33\t80" ) == false &&
 s.startsWith( "17\t16" ) == false &&
 s.startsWith( "1\t4\t" ) == false &&
 s.startsWith( "1\t16\t" ) == false &&
-s.startsWith( "10\t10\t10" ) == false &&
+//s.startsWith( "10\t10\t10" ) == false &&
 s.startsWith( "0\t109\t") == false &&
 s.startsWith( "0\t50\t") == false &&
 s.startsWith( "2\t169\t") == false &&
@@ -111,7 +111,7 @@ s.startsWith( "17\t6" ) == false && // after volume
 s.startsWith( "49\t70" ) == false && // after volume
 s.startsWith( "33\t4" ) == false && // after volume
 s.startsWith( "1\t6" ) == false && // after volume
-s.endsWith( "10\t10\t3\t" ) == false && // volume amount
+//s.endsWith( "10\t10\t3\t" ) == false && // volume amount
 s.startsWith("0\t1\t1\t0\t") == false // don't show track #
 
 
