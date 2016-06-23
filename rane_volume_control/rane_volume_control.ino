@@ -27,7 +27,7 @@ const String HU_OFF = "0-122-2-";
 //const String HU_ON = "0-13-1-22-240-0-";
 const String HU_ON = "22-240-0";
 const String AUX = "0-76-2-";
-const String VOL_CHANGE = "10-10-10-10-10-3-";
+const String VOL_CHANGE = "10-10-10-10-10-";
 const String CD_PAUSED = "0-3-5-22-80-0-72-2-";
 const String CD_PLAYING = "0-3-5-22-16-0-72-2-";
 const String CD_TRACK_CHANGE = "0-3-5-22-128-0-72-2-";
@@ -91,7 +91,9 @@ void loop()
           // The HU_OFF signal gets sent constantly
           // while it is off, so only flip the switch
           // if needed
+          //Serial.println( "OFF: " + s );
           if( system_on ) {
+            
             turnSystemOff();
           } 
           //Serial.print( "OFF: " );
@@ -125,15 +127,16 @@ void loop()
         //31-111-50-0-16-0-0-118-    // acc ipod
         //31-111-31-255-16-0-0-11-   // running radio
         //31-111-31-255-64-0-0-11-   // acc radio
-        //31-111-31-255-16-0-0-93-   // disc
+        //31-111-31-255-16-0-0-81-   // disc
         //31-111-16-0-16-0-0-0-   // opened door
         //31-111-16-0-16-0-1-251- // about to be off 
+        //31-111-111-255-48-0-81/11  source switch
         
         //Serial.println( s );
     }
     else {
       no_msg_counter++;
-      if( no_msg_counter > 50000 ) {
+      if( no_msg_counter > 5000 ) {
         //if( system_on ) {
           Serial.println( "No activity, turning off system" );
           turnSystemOff();
@@ -150,16 +153,18 @@ boolean isSourceOff( String msg ) {
   else if( msg.startsWith( "31-111" ) && msg.endsWith( "16-0-1-251" ) ) {
      return true; 
   }
-  else if( msg.startsWith( "31-111" ) && msg.endsWith( "16-0-0-0-" ) ) {
-     return true; 
-  }
   else {
     return false;
   }
 }
 
 boolean isSourcePlaying( String msg ) {
-  if( msg.startsWith( "31-111" ) && msg.indexOf( "16-0-0" ) > 7 ) {
+  //Serial.println( msg );
+  //if( msg.startsWith( "31-111" ) && msg.indexOf( "16-0-0" ) > 7 ) {
+  if( msg.startsWith( "31-111" ) ) {
+    //Serial.print( "source on: " );
+    //Serial.println( msg );
+    
     return true;
   } 
   else {
@@ -168,12 +173,13 @@ boolean isSourcePlaying( String msg ) {
 }
 
 boolean isVolumeChange( String msg ) {
-  return msg.endsWith( VOL_CHANGE ); 
+  return msg.indexOf( VOL_CHANGE ) > 1; 
 }
 
 int parseVolume( String msg ) {
   int index = msg.indexOf("-");
   int value = msg.substring(0,index).toInt();
+  //Serial.println( "Volume " + value );
   return value;
 }
 
@@ -203,12 +209,12 @@ void changeVolume( int value ) {
 void mute() {
   digitalWrite( mute_relay, HIGH );
   muted = true;
-  Serial.println( "Muted" );
+  //Serial.println( "Muted" );
 }
 
 void unMute() {
   if( muted ) {
-    Serial.println( "Un-muting" );
+    //Serial.println( "Un-muting" );
     digitalWrite( mute_relay, LOW );
     muted = false;
   }
@@ -219,7 +225,7 @@ void turnSystemOn() {
     Serial.println( "Turning system on" );
     // Turn on Rane
     digitalWrite( rane_relay, HIGH );
-    delay( 1000 );
+    delay( 3000 );
     // Turn on amps
     digitalWrite( amps_relay, HIGH );
     system_on = true;
@@ -227,6 +233,7 @@ void turnSystemOn() {
 }
 
 void turnSystemOff() { 
+  
   //if( system_on ) {
     Serial.println( "Turning system off" );
     // Set volume to zero
@@ -239,6 +246,7 @@ void turnSystemOff() {
     system_on = false;
     turnLEDsOff();
    //}
+  
 }
 
 void turnLEDsOff() {
